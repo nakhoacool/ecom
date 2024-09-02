@@ -3,3 +3,6 @@ build:
 
 run: build
 	@./bin/ecom
+
+test:
+	@go test -v ./...
