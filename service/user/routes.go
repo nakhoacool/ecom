@@ -6,6 +6,7 @@ import (
 	"ecom/utils"
 	"fmt"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -58,7 +59,9 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// create the user
 	err = h.store.CreateUser(types.User{
+		ID:        uuid.New().String(),
 		FirstName: payload.FirstName,
 		LastName:  payload.LastName,
 		Email:     payload.Email,
