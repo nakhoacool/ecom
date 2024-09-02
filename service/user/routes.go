@@ -1,6 +1,7 @@
 package user
 
 import (
+	"ecom/config"
 	"ecom/service/auth"
 	"ecom/types"
 	"ecom/utils"
@@ -27,7 +28,44 @@ func (h *Handler) UserRoutes(router *mux.Router) {
 }
 
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
+	//get JSON payload
+	var payload types.LoginUserPayload
+	if err := utils.ParseJSON(r, &payload); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
 
+	// validate the payload
+	err := utils.Validate.Struct(payload)
+	if err != nil {
+		validationErrors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload: %v", validationErrors))
+		return
+	}
+
+	// get the user from the store
+	user, err := h.store.GetUserByEmail(payload.Email)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid email or password"))
+		return
+	}
+
+	// compare the password
+	err = auth.ComparePassword(user.Password, payload.Password)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid email or password"))
+		return
+	}
+
+	// generate a token
+	secret := []byte(config.ENV.JWTSecret)
+	token, err := auth.CreateToken(secret, user.ID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, map[string]string{"message": "login successful", "token": token})
 }
 
 func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {

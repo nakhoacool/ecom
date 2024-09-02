@@ -13,6 +13,7 @@ type Config struct {
 	DBPassword string
 	DBAddress  string
 	DBName     string
+	JWTSecret  string
 }
 
 var ENV = initConfig()
@@ -26,6 +27,7 @@ func initConfig() Config {
 		DBPassword: getEnv("DB_PASSWORD", "root"),
 		DBAddress:  fmt.Sprintf("%s:%s", getEnv("DB_HOST", "127.0.0.1"), getEnv("DB_PORT", "3306")),
 		DBName:     getEnv("DB_NAME", "ecommerce"),
+		JWTSecret:  getEnv("JWT_SECRET", "secret"),
 	}
 }
 
