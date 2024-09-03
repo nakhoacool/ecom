@@ -1,17 +1,17 @@
 package product
 
 import (
-	"ecom/types"
+	"ecom/domain"
 	"ecom/utils"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 type Handler struct {
-	store types.ProductStoreInterface
+	store domain.ProductRepository
 }
 
-func NewHandler(store types.ProductStoreInterface) *Handler {
+func NewHandler(store domain.ProductRepository) *Handler {
 	return &Handler{
 		store: store,
 	}
@@ -34,7 +34,7 @@ func (h *Handler) handleGetProducts(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) handleCreateProduct(w http.ResponseWriter, r *http.Request) {
 	// get JSON payload
-	var payload types.ProductPayload
+	var payload domain.ProductPayload
 	if err := utils.ParseJSON(r, &payload); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -48,7 +48,7 @@ func (h *Handler) handleCreateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create the product
-	err = h.store.CreateProduct(types.Product{
+	err = h.store.CreateProduct(domain.Product{
 		Name:        payload.Name,
 		Description: payload.Description,
 		Image:       payload.Image,

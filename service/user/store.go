@@ -2,7 +2,7 @@ package user
 
 import (
 	"database/sql"
-	"ecom/types"
+	"ecom/domain"
 	"errors"
 	"fmt"
 )
@@ -15,11 +15,10 @@ func NewStore(db *sql.DB) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) GetUserByEmail(email string) (*types.User, error) {
-	defer s.db.Close()
+func (s *Store) GetUserByEmail(email string) (*domain.User, error) {
 	row := s.db.QueryRow("SELECT * FROM users WHERE email = ?", email)
 
-	user := new(types.User)
+	user := new(domain.User)
 	err := row.Scan(
 		&user.ID,
 		&user.FirstName,
@@ -38,11 +37,10 @@ func (s *Store) GetUserByEmail(email string) (*types.User, error) {
 	return user, nil
 }
 
-func (s *Store) GetUserByID(id int) (*types.User, error) {
-	defer s.db.Close()
+func (s *Store) GetUserByID(id int) (*domain.User, error) {
 	row := s.db.QueryRow("SELECT * FROM users WHERE id = ?", id)
 
-	user := new(types.User)
+	user := new(domain.User)
 	err := row.Scan(
 		&user.ID,
 		&user.FirstName,
@@ -61,8 +59,7 @@ func (s *Store) GetUserByID(id int) (*types.User, error) {
 	return user, nil
 }
 
-func (s *Store) CreateUser(user types.User) error {
-	defer s.db.Close()
+func (s *Store) CreateUser(user domain.User) error {
 	_, err := s.db.Exec(
 		"INSERT INTO users (id,firstName, lastName, email, password) VALUES (?,?, ?, ?, ?)",
 		user.ID,

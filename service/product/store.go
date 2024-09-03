@@ -2,7 +2,7 @@ package product
 
 import (
 	"database/sql"
-	"ecom/types"
+	"ecom/domain"
 	"sync"
 )
 
@@ -29,7 +29,7 @@ func NewStore(db *sql.DB) *Store {
 //	return stock, nil
 //}
 
-func (s *Store) GetProducts() (*[]types.Product, error) {
+func (s *Store) GetProducts() (*[]domain.Product, error) {
 	rows, err := s.db.Query(`
         SELECT p.id, p.name, p.description, p.image, p.price, p.createdAt, ps.quantity
         FROM products p
@@ -40,9 +40,9 @@ func (s *Store) GetProducts() (*[]types.Product, error) {
 	}
 	defer rows.Close()
 
-	products := make([]types.Product, 0)
+	products := make([]domain.Product, 0)
 	for rows.Next() {
-		var product types.Product
+		var product domain.Product
 		err := rows.Scan(
 			&product.ID,
 			&product.Name,
@@ -61,7 +61,32 @@ func (s *Store) GetProducts() (*[]types.Product, error) {
 	return &products, nil
 }
 
-func (s *Store) CreateProduct(product types.Product) error {
+func (s *Store) GetProductByID(id int) (*domain.Product, error) {
+	row := s.db.QueryRow(`
+		SELECT p.id, p.name, p.description, p.image, p.price, p.createdAt, ps.quantity
+		FROM products p
+		LEFT JOIN product_stock ps ON p.id = ps.product_id
+		WHERE p.id = ?
+	`, id)
+
+	product := new(domain.Product)
+	err := row.Scan(
+		&product.ID,
+		&product.Name,
+		&product.Description,
+		&product.Image,
+		&product.Price,
+		&product.CreatedAt,
+		&product.Quantity,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return product, nil
+}
+
+func (s *Store) CreateProduct(product domain.Product) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

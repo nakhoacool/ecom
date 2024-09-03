@@ -2,7 +2,7 @@ package user
 
 import (
 	"bytes"
-	"ecom/types"
+	"ecom/domain"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -13,9 +13,9 @@ import (
 
 type mockUserStore struct{}
 
-func (m *mockUserStore) GetUserByEmail(email string) (*types.User, error) {
+func (m *mockUserStore) GetUserByEmail(email string) (*domain.User, error) {
 	if email == "existing.user@gmail.com" {
-		return &types.User{
+		return &domain.User{
 			FirstName: "Existing",
 			LastName:  "User",
 			Email:     "existing.user@gmail.com",
@@ -25,11 +25,11 @@ func (m *mockUserStore) GetUserByEmail(email string) (*types.User, error) {
 	return nil, fmt.Errorf("user not found")
 }
 
-func (m *mockUserStore) GetUserByID(id int) (*types.User, error) {
+func (m *mockUserStore) GetUserByID(id int) (*domain.User, error) {
 	return nil, nil
 }
 
-func (m *mockUserStore) CreateUser(user types.User) error {
+func (m *mockUserStore) CreateUser(user domain.User) error {
 	return nil
 }
 
@@ -38,7 +38,7 @@ func TestUserServiceHandlers(t *testing.T) {
 	handler := NewHandler(userStore)
 
 	t.Run("should return 400 if the payload is invalid", func(t *testing.T) {
-		payload := types.RegisterUserPayload{
+		payload := domain.RegisterUserPayload{
 			FirstName: "John",
 			LastName:  "Doe",
 			Email:     "john.doe.com",
@@ -65,7 +65,7 @@ func TestUserServiceHandlers(t *testing.T) {
 	})
 
 	t.Run("should return 400 if user already exists", func(t *testing.T) {
-		payload := types.RegisterUserPayload{
+		payload := domain.RegisterUserPayload{
 			FirstName: "Existing",
 			LastName:  "User",
 			Email:     "existing.user@gmail.com",
@@ -91,7 +91,7 @@ func TestUserServiceHandlers(t *testing.T) {
 	})
 
 	t.Run("should return 201 when user created successfully", func(t *testing.T) {
-		payload := types.RegisterUserPayload{
+		payload := domain.RegisterUserPayload{
 			FirstName: "John",
 			LastName:  "Doe",
 			Email:     "john.doe@gmail.com",

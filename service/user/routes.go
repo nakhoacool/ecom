@@ -2,8 +2,8 @@ package user
 
 import (
 	"ecom/config"
+	"ecom/domain"
 	"ecom/service/auth"
-	"ecom/types"
 	"ecom/utils"
 	"fmt"
 	"github.com/go-playground/validator/v10"
@@ -13,10 +13,10 @@ import (
 )
 
 type Handler struct {
-	store types.UserStoreInterface
+	store domain.UserRepository
 }
 
-func NewHandler(store types.UserStoreInterface) *Handler {
+func NewHandler(store domain.UserRepository) *Handler {
 	return &Handler{
 		store: store,
 	}
@@ -29,7 +29,7 @@ func (h *Handler) UserRoutes(router *mux.Router) {
 
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	//get JSON payload
-	var payload types.LoginUserPayload
+	var payload domain.LoginUserPayload
 	if err := utils.ParseJSON(r, &payload); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -70,7 +70,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	//get JSON payload
-	var payload types.RegisterUserPayload
+	var payload domain.RegisterUserPayload
 	if err := utils.ParseJSON(r, &payload); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -98,7 +98,7 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create the user
-	err = h.store.CreateUser(types.User{
+	err = h.store.CreateUser(domain.User{
 		ID:        uuid.New().String(),
 		FirstName: payload.FirstName,
 		LastName:  payload.LastName,
