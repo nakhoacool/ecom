@@ -29,10 +29,9 @@ type ProductRepository interface {
 	GetProducts() (*[]Product, error)
 	CreateProduct(product Product) error
 	GetProductByID(id int) (*Product, error)
+	GetProductByIDs(ids []int) (*[]Product, error)
+	UpdateProduct(product Product) error
 
-	//UpdateProduct(product Product) error
-	//DeleteProduct(id int) error
-
-	//GetProductStock(productID int) (*ProductStock, error)
-	//UpdateProductStock(productID, quantity int) error
+	GetProductStock(productID int) (*ProductStock, error)
+	UpdateProductStock(productID, quantity int) error
 }
