@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"ecom/service/product"
 	"ecom/service/user"
 	"github.com/gorilla/mux"
 	"log"
@@ -24,6 +25,10 @@ func (server *APIServer) Run() error {
 	userStore := user.NewStore(server.db)
 	userHandler := user.NewHandler(userStore)
 	userHandler.UserRoutes(subrouter)
+
+	productStore := product.NewStore(server.db)
+	productHandler := product.NewHandler(productStore)
+	productHandler.ProductRoutes(subrouter)
 
 	log.Println("Listening on", server.addr)
 	return http.ListenAndServe(server.addr, router)

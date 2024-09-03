@@ -16,6 +16,7 @@ func NewStore(db *sql.DB) *Store {
 }
 
 func (s *Store) GetUserByEmail(email string) (*types.User, error) {
+	defer s.db.Close()
 	row := s.db.QueryRow("SELECT * FROM users WHERE email = ?", email)
 
 	user := new(types.User)
@@ -38,6 +39,7 @@ func (s *Store) GetUserByEmail(email string) (*types.User, error) {
 }
 
 func (s *Store) GetUserByID(id int) (*types.User, error) {
+	defer s.db.Close()
 	row := s.db.QueryRow("SELECT * FROM users WHERE id = ?", id)
 
 	user := new(types.User)
@@ -60,6 +62,7 @@ func (s *Store) GetUserByID(id int) (*types.User, error) {
 }
 
 func (s *Store) CreateUser(user types.User) error {
+	defer s.db.Close()
 	_, err := s.db.Exec(
 		"INSERT INTO users (id,firstName, lastName, email, password) VALUES (?,?, ?, ?, ?)",
 		user.ID,
