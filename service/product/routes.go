@@ -3,8 +3,10 @@ package product
 import (
 	"ecom/domain"
 	"ecom/utils"
+	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
+	"strconv"
 )
 
 type Handler struct {
@@ -18,8 +20,9 @@ func NewHandler(store domain.ProductRepository) *Handler {
 }
 
 func (h *Handler) ProductRoutes(router *mux.Router) {
-	router.HandleFunc("/products", h.handleGetProducts).Methods("GET")
-	router.HandleFunc("/products", h.handleCreateProduct).Methods("POST")
+	router.HandleFunc("/products", h.handleGetProducts).Methods(http.MethodGet)
+	router.HandleFunc("/products", h.handleCreateProduct).Methods(http.MethodPost)
+	router.HandleFunc("/products/{id}", h.handleGetProductByID).Methods(http.MethodGet)
 }
 
 func (h *Handler) handleGetProducts(w http.ResponseWriter, r *http.Request) {
@@ -61,4 +64,30 @@ func (h *Handler) handleCreateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusCreated, map[string]string{"message": "product created"})
+}
+
+func (h *Handler) handleGetProductByID(w http.ResponseWriter, r *http.Request) {
+	// get the product ID from the URL
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("missing product ID"))
+		return
+	}
+
+	// convert the ID to an integer
+	productID, err := strconv.Atoi(id)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid product ID"))
+		return
+	}
+
+	// get the product from the store
+	product, err := h.store.GetProductByID(productID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, product)
 }

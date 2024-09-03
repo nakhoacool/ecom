@@ -3,7 +3,6 @@ package user
 import (
 	"ecom/config"
 	"ecom/domain"
-	"ecom/service/auth"
 	"ecom/utils"
 	"fmt"
 	"github.com/go-playground/validator/v10"
@@ -14,11 +13,13 @@ import (
 
 type Handler struct {
 	store domain.UserRepository
+	auth  domain.AuthService
 }
 
-func NewHandler(store domain.UserRepository) *Handler {
+func NewHandler(store domain.UserRepository, auth domain.AuthService) *Handler {
 	return &Handler{
 		store: store,
+		auth:  auth,
 	}
 }
 
@@ -51,7 +52,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// compare the password
-	err = auth.ComparePassword(user.Password, payload.Password)
+	err = h.auth.ComparePassword(user.Password, payload.Password)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid email or password"))
 		return
@@ -59,7 +60,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// generate a token
 	secret := []byte(config.ENV.JWTSecret)
-	token, err := auth.CreateToken(secret, user.ID)
+	token, err := h.auth.CreateToken(secret, user.ID)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
@@ -91,7 +92,7 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// hash the password
-	hashedPassword, err := auth.HashPassword(payload.Password)
+	hashedPassword, err := h.auth.HashPassword(payload.Password)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return

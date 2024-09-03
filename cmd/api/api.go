@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"ecom/service/auth"
 	"ecom/service/product"
 	"ecom/service/user"
 	"github.com/gorilla/mux"
@@ -22,8 +23,9 @@ func (server *APIServer) Run() error {
 	router := mux.NewRouter()
 	subrouter := router.PathPrefix("/api/v1").Subrouter()
 
+	authStore := auth.NewStore()
 	userStore := user.NewStore(server.db)
-	userHandler := user.NewHandler(userStore)
+	userHandler := user.NewHandler(userStore, authStore)
 	userHandler.UserRoutes(subrouter)
 
 	productStore := product.NewStore(server.db)

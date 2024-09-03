@@ -11,15 +11,33 @@ import (
 	"testing"
 )
 
+type mockAuthStore struct{}
+
+func (m *mockAuthStore) CreateToken(secret []byte, userID string) (string, error) {
+	return "mockToken", nil
+}
+
+func (m *mockAuthStore) HashPassword(password string) (string, error) {
+	return "", nil
+}
+
+func (m *mockAuthStore) ComparePassword(hashedPassword, password string) error {
+	if hashedPassword == "hashedPassword" && password == "password" {
+		return nil
+	}
+	return fmt.Errorf("invalid password")
+}
+
 type mockUserStore struct{}
 
 func (m *mockUserStore) GetUserByEmail(email string) (*domain.User, error) {
 	if email == "existing.user@gmail.com" {
 		return &domain.User{
+			ID:        "1",
 			FirstName: "Existing",
 			LastName:  "User",
 			Email:     "existing.user@gmail.com",
-			Password:  "12345678",
+			Password:  "hashedPassword",
 		}, nil
 	}
 	return nil, fmt.Errorf("user not found")
@@ -33,9 +51,10 @@ func (m *mockUserStore) CreateUser(user domain.User) error {
 	return nil
 }
 
-func TestUserServiceHandlers(t *testing.T) {
+func TestHandleRegister(t *testing.T) {
 	userStore := &mockUserStore{}
-	handler := NewHandler(userStore)
+	authStore := &mockAuthStore{}
+	handler := NewHandler(userStore, authStore)
 
 	t.Run("should return 400 if the payload is invalid", func(t *testing.T) {
 		payload := domain.RegisterUserPayload{
@@ -113,6 +132,100 @@ func TestUserServiceHandlers(t *testing.T) {
 
 		if rr.Code != http.StatusCreated {
 			t.Errorf("expected status code %d, got %d", http.StatusCreated, rr.Code)
+		}
+	})
+}
+
+func TestHandleLogin(t *testing.T) {
+	userStore := &mockUserStore{}
+	authStore := &mockAuthStore{}
+	handler := NewHandler(userStore, authStore)
+
+	t.Run("should return 400 if the payload is invalid", func(t *testing.T) {
+		payload := "invalid payload"
+
+		req, err := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer([]byte(payload)))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		rr := httptest.NewRecorder()
+		router := mux.NewRouter()
+		router.HandleFunc("/login", handler.handleLogin)
+
+		router.ServeHTTP(rr, req)
+
+		if rr.Code != http.StatusBadRequest {
+			t.Errorf("expected status code %d, got %d", http.StatusBadRequest, rr.Code)
+		}
+	})
+
+	t.Run("should return 400 if user not found", func(t *testing.T) {
+		payload := domain.LoginUserPayload{
+			Email:    "non.existing.user@gmail.com",
+			Password: "password",
+		}
+
+		marshaled, _ := json.Marshal(payload)
+		req, err := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(marshaled))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		rr := httptest.NewRecorder()
+		router := mux.NewRouter()
+		router.HandleFunc("/login", handler.handleLogin)
+
+		router.ServeHTTP(rr, req)
+
+		if rr.Code != http.StatusBadRequest {
+			t.Errorf("expected status code %d, got %d", http.StatusBadRequest, rr.Code)
+		}
+	})
+
+	t.Run("should return 400 if password is incorrect", func(t *testing.T) {
+		payload := domain.LoginUserPayload{
+			Email:    "existing.user@gmail.com",
+			Password: "wrongpassword",
+		}
+
+		marshaled, _ := json.Marshal(payload)
+		req, err := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(marshaled))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		rr := httptest.NewRecorder()
+		router := mux.NewRouter()
+		router.HandleFunc("/login", handler.handleLogin)
+
+		router.ServeHTTP(rr, req)
+
+		if rr.Code != http.StatusBadRequest {
+			t.Errorf("expected status code %d, got %d", http.StatusBadRequest, rr.Code)
+		}
+	})
+
+	t.Run("should return 200 when login is successful", func(t *testing.T) {
+		payload := domain.LoginUserPayload{
+			Email:    "existing.user@gmail.com",
+			Password: "password",
+		}
+
+		marshaled, _ := json.Marshal(payload)
+		req, err := http.NewRequest(http.MethodPost, "/login", bytes.NewBuffer(marshaled))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		rr := httptest.NewRecorder()
+		router := mux.NewRouter()
+		router.HandleFunc("/login", handler.handleLogin)
+
+		router.ServeHTTP(rr, req)
+
+		if rr.Code != http.StatusOK {
+			t.Errorf("expected status code %d, got %d", http.StatusOK, rr.Code)
 		}
 	})
 }
