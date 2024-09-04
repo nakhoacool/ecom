@@ -25,6 +25,7 @@ func (s *Store) GetUserByEmail(email string) (*domain.User, error) {
 		&user.LastName,
 		&user.Email,
 		&user.Password,
+		&user.Address,
 		&user.CreatedAt,
 	)
 
@@ -47,6 +48,7 @@ func (s *Store) GetUserByID(id int) (*domain.User, error) {
 		&user.LastName,
 		&user.Email,
 		&user.Password,
+		&user.Address,
 		&user.CreatedAt,
 	)
 
@@ -61,12 +63,13 @@ func (s *Store) GetUserByID(id int) (*domain.User, error) {
 
 func (s *Store) CreateUser(user domain.User) error {
 	_, err := s.db.Exec(
-		"INSERT INTO users (id,firstName, lastName, email, password) VALUES (?,?, ?, ?, ?)",
+		"INSERT INTO users (id,firstName, lastName, email, password, address) VALUES (?,?, ?, ?, ?, ?)",
 		user.ID,
 		user.FirstName,
 		user.LastName,
 		user.Email,
 		user.Password,
+		user.Address,
 	)
 
 	return err

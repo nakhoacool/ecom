@@ -5,6 +5,7 @@ import (
 	"ecom/domain"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 )
 
@@ -75,12 +76,26 @@ func (s *Store) GetProductByID(id int) (*domain.Product, error) {
 }
 
 func (s *Store) GetProductByIDs(ids []int) (*[]domain.Product, error) {
-	rows, err := s.db.Query(`
+	if len(ids) == 0 {
+		return &[]domain.Product{}, nil
+	}
+
+	// Create placeholders for the IN clause
+	placeholders := make([]string, len(ids))
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		placeholders[i] = "?"
+		args[i] = id
+	}
+
+	query := fmt.Sprintf(`
 		SELECT p.id, p.name, p.description, p.image, p.price, p.createdAt, ps.quantity
 		FROM products p
 		LEFT JOIN product_stock ps ON p.id = ps.product_id
-		WHERE p.id IN (?)
-	`, ids)
+		WHERE p.id IN (%s)
+	`, strings.Join(placeholders, ","))
+
+	rows, err := s.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

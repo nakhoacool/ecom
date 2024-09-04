@@ -13,11 +13,15 @@ func NewStore() *Store {
 	return &Store{}
 }
 
-func (s *Store) CreateToken(secret []byte, userID string) (string, error) {
+func (s *Store) CreateToken(secret []byte, userID string, firstName string, lastName string, email string, address string) (string, error) {
 	expiration := time.Now().Add(24 * time.Hour)
 	claims := jwt.MapClaims{
-		"userID": userID,
-		"exp":    expiration.Unix(),
+		"userID":    userID,
+		"firstName": firstName,
+		"lastName":  lastName,
+		"email":     email,
+		"address":   address,
+		"exp":       expiration.Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(secret)

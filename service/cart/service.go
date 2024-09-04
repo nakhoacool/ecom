@@ -16,7 +16,7 @@ func getCartItemsIDs(items []domain.CartItem) ([]int, error) {
 	return productIDs, nil
 }
 
-func (h *Handler) createOrder(userID string, items []domain.CartItem, products *[]domain.Product) (int, float64, error) {
+func (h *Handler) createOrder(userID string, address string, items []domain.CartItem, products *[]domain.Product) (int, float64, error) {
 	// Create a map for products
 	productMap := make(map[int]domain.Product)
 	for _, product := range *products {
@@ -51,10 +51,10 @@ func (h *Handler) createOrder(userID string, items []domain.CartItem, products *
 
 	// Create the order
 	order := domain.Order{
-		UserID: userID,
-		Total:  totalPrice,
-		Status: "pending",
-		// Add other necessary fields like Address if needed
+		UserID:  userID,
+		Total:   totalPrice,
+		Status:  "pending",
+		Address: address,
 	}
 	orderID, err := h.orderStore.CreateOrder(order)
 	if err != nil {

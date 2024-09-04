@@ -2,6 +2,7 @@ package cart
 
 import (
 	"ecom/domain"
+	"ecom/middleware"
 	"ecom/utils"
 	"fmt"
 	"github.com/go-playground/validator/v10"
@@ -22,7 +23,7 @@ func NewHandler(orderStore domain.OrderRepository, productStore domain.ProductRe
 }
 
 func (h *Handler) RegisterRoutes(router *mux.Router) {
-	router.HandleFunc("/cart/checkout", h.handleCheckout).Methods(http.MethodPost)
+	router.Handle("/cart/checkout", middleware.JWTMiddleware(http.HandlerFunc(h.handleCheckout))).Methods(http.MethodPost)
 }
 
 func (h *Handler) handleCheckout(w http.ResponseWriter, r *http.Request) {
@@ -55,9 +56,21 @@ func (h *Handler) handleCheckout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// get the user ID and address from the context
+	userID, err := middleware.GetUserIDFromContext(r.Context())
+	if err != nil {
+		utils.WriteError(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	address, err := middleware.GetAddressFromContext(r.Context())
+	if err != nil {
+		utils.WriteError(w, http.StatusUnauthorized, err)
+		return
+	}
+
 	// create the order
-	// TODO: implement JWT authentication and get the user ID from the token
-	orderID, totalPrice, err := h.createOrder("1", payload.Items, products)
+	orderID, totalPrice, err := h.createOrder(userID, address, payload.Items, products)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return

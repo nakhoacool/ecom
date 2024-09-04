@@ -13,7 +13,7 @@ import (
 
 type mockAuthStore struct{}
 
-func (m *mockAuthStore) CreateToken(secret []byte, userID string) (string, error) {
+func (m *mockAuthStore) CreateToken(secret []byte, userID string, firstName string, lastName string, email string, address string) (string, error) {
 	return "mockToken", nil
 }
 
@@ -38,6 +38,7 @@ func (m *mockUserStore) GetUserByEmail(email string) (*domain.User, error) {
 			LastName:  "User",
 			Email:     "existing.user@gmail.com",
 			Password:  "hashedPassword",
+			Address:   "Existing User Address",
 		}, nil
 	}
 	return nil, fmt.Errorf("user not found")

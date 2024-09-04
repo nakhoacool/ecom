@@ -60,7 +60,7 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// generate a token
 	secret := []byte(config.ENV.JWTSecret)
-	token, err := h.auth.CreateToken(secret, user.ID)
+	token, err := h.auth.CreateToken(secret, user.ID, user.FirstName, user.LastName, user.Email, user.Address)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
@@ -105,6 +105,7 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 		LastName:  payload.LastName,
 		Email:     payload.Email,
 		Password:  hashedPassword,
+		Address:   payload.Address,
 	})
 
 	if err != nil {
