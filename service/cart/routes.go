@@ -23,7 +23,7 @@ func NewHandler(orderStore domain.OrderRepository, productStore domain.ProductRe
 }
 
 func (h *Handler) RegisterRoutes(router *mux.Router) {
-	router.Handle("/cart/checkout", middleware.JWTMiddleware(http.HandlerFunc(h.handleCheckout))).Methods(http.MethodPost)
+	router.HandleFunc("/checkout", h.handleCheckout).Methods("POST")
 }
 
 func (h *Handler) handleCheckout(w http.ResponseWriter, r *http.Request) {

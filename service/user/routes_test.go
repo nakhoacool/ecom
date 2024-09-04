@@ -116,6 +116,7 @@ func TestHandleRegister(t *testing.T) {
 			LastName:  "Doe",
 			Email:     "john.doe@gmail.com",
 			Password:  "12345678",
+			Address:   "John Doe Address",
 		}
 
 		marshaled, _ := json.Marshal(payload)

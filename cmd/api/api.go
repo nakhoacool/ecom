@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"ecom/middleware"
 	"ecom/service/auth"
 	"ecom/service/cart"
 	"ecom/service/order"
@@ -37,7 +38,10 @@ func (server *APIServer) Run() error {
 	orderStore := order.NewStore(server.db)
 
 	cartHandler := cart.NewHandler(orderStore, productStore)
-	cartHandler.RegisterRoutes(subrouter)
+	cartSubrouter := subrouter.PathPrefix("/cart").Subrouter()
+	cartSubrouter.Use(middleware.JWTMiddleware)
+	cartHandler.RegisterRoutes(cartSubrouter)
+
 	log.Println("Listening on", server.addr)
 	return http.ListenAndServe(server.addr, router)
 }
